@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.Serialization;
 
 namespace _1_Excercicio
 {
@@ -19,19 +21,7 @@ namespace _1_Excercicio
         
         public void SacarConta(ContaCorrente contaCorrente, double valor)
         {
-            if (contaCorrente.Saldo >= valor)
-            {
-                contaCorrente.Saldo -= valor;
-                var movimentacao1 = new Movimentacao()
-                {
-                    Descricao = "Saque de Conta",
-                    Valor = valor,
-                    Tipo = Tipo.Debito
-                };
-                contaCorrente.Movimentacoes.Add(movimentacao1);
-            }
-
-            else if ((contaCorrente.Saldo + contaCorrente.Limite) >= valor)
+            if ((contaCorrente.Saldo + contaCorrente.Limite) >= valor)
             {
                 contaCorrente.Saldo -= valor;
                 contaCorrente.Limite += contaCorrente.Saldo ;
@@ -40,13 +30,13 @@ namespace _1_Excercicio
                 {
                     Descricao = "Saque de Conta",
                     Valor = valor,
-                    Tipo = Tipo.Credito
+                    Tipo = Tipo.Debito
                 };
                 contaCorrente.Movimentacoes.Add(movimentacao2);
             }
             else 
             {
-                Console.WriteLine("Nao foi possivel efetuar saque");
+                throw new LimiteAtingidoException ("Nao foi possivel efetuar Saque");
             }
         }
         
@@ -57,7 +47,7 @@ namespace _1_Excercicio
             {
                 Descricao = "Deposito de Conta",
                 Valor = valor,
-                Tipo = Tipo.Debito
+                Tipo = Tipo.Credito
             };
             contaCorrente.Movimentacoes.Add(movimentacao);
         }
@@ -69,8 +59,9 @@ namespace _1_Excercicio
         
         public void EmitirExtrato(ContaCorrente contaCorrente)
         {
-            foreach (var movimentacao in contaCorrente.Movimentacoes)
+            foreach (var movimentacao in contaCorrente.Movimentacoes.OrderBy(x => x.Data))
             {
+                Console.WriteLine("Data: " + movimentacao.Data);
                 Console.WriteLine("Descricao: " + movimentacao.Descricao);
                 Console.WriteLine("Valor: " + movimentacao.Valor);
                 Console.WriteLine("Tipo: " + movimentacao.Tipo + "\n");
@@ -79,27 +70,7 @@ namespace _1_Excercicio
 
         public void TransferirContas(ContaCorrente contaCorrente1, ContaCorrente contaCorrente2, double valor)
         {
-            if (contaCorrente1.Saldo >= valor)
-            {
-                contaCorrente1.Saldo -= valor;
-                var movimentacao1 = new Movimentacao()
-                {
-                    Descricao = "Foi descontado para uma transferencia entre contas",
-                    Valor = valor,
-                    Tipo = Tipo.Debito
-                };
-                contaCorrente1.Movimentacoes.Add(movimentacao1);
-
-                contaCorrente2.Saldo += valor;
-                var movimentacao2 = new Movimentacao()
-                {
-                    Descricao = "Foi adicionado de uma transferencia entre contas",
-                    Valor = valor,
-                    Tipo = Tipo.Debito
-                };
-                contaCorrente1.Movimentacoes.Add(movimentacao2);
-            }
-            else if ((contaCorrente1.Saldo + contaCorrente1.Limite) >= valor )
+            if ((contaCorrente1.Saldo + contaCorrente1.Limite) >= valor )
             {
                 contaCorrente1.Saldo -= valor;
                 contaCorrente1.Limite += contaCorrente1.Saldo;
@@ -107,7 +78,7 @@ namespace _1_Excercicio
                 {
                     Descricao = "Foi descontado para uma transferencia entre contas",
                     Valor = valor,
-                    Tipo = Tipo.Credito
+                    Tipo = Tipo.Debito
                 };
                 contaCorrente1.Movimentacoes.Add(movimentacao1);
 
@@ -122,7 +93,22 @@ namespace _1_Excercicio
             }
             else
             {
-                Console.WriteLine("Nao foi possivel efetuar transferencia");
+                throw new LimiteAtingidoException ("Nao foi possivel efetuar transferencia");
+            }
+        }
+        public class LimiteAtingidoException : TransacaoNaoRealizadaException {
+            public LimiteAtingidoException(string message) : base(message)
+            {
+            }
+        }
+        
+        public class TransacaoNaoRealizadaException : Exception {
+            public TransacaoNaoRealizadaException(string message) : base(message)
+            {
+            }
+            
+            public TransacaoNaoRealizadaException(string message, Exception inner) : base(message, inner)
+            {
             }
         }
     }

@@ -1,9 +1,12 @@
-﻿namespace _1_Excercicio
+﻿using System;
+
+namespace _1_Excercicio
 {
     public class Movimentacao
     {
         public string Descricao { get; set; }
         public double Valor { get; set; }
+        public DateTime Data {get;set;}
         public Tipo Tipo {get;set;}
     }
     public enum Tipo

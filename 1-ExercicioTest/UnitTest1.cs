@@ -52,21 +52,6 @@ namespace Tests
             Assert.AreEqual(conta.Saldo, 500-300);
             Assert.AreEqual(banco.ContasCorrente[0].Saldo, 500-300);
         }
-        [Test]
-        public void Deve_Descontar_Do_Limite_Quando_Sacar_E_Estiver_Sem_Saldo_E_Com_Limite()
-        {
-            var banco = new Banco();
-            var conta = new ContaCorrente(12345, 500, 1000);
-            banco.CriarConta(conta);
-
-            banco.SacarConta(conta, 800);
-            
-            Assert.AreEqual(conta.Saldo, -300);
-            Assert.AreEqual(banco.ContasCorrente[0].Saldo, -300);
-            
-            Assert.AreEqual(conta.Limite, 700); 
-            Assert.AreEqual(banco.ContasCorrente[0].Limite, 700);
-        }
         
         [Test]
         public void Deve_Regeitar_Saques_Maiores_Que_O_Limite_Saldo_Somados()
@@ -75,7 +60,7 @@ namespace Tests
             var conta = new ContaCorrente(12345, 500, 1000);
             banco.CriarConta(conta);
             
-            banco.SacarConta(conta, 1501);
+            Assert.Throws<Banco.LimiteAtingidoException>(() => banco.SacarConta(conta, 1501));
             
             Assert.AreEqual(conta.Saldo, 500);
             Assert.AreEqual(banco.ContasCorrente[0].Saldo, 500);
@@ -130,8 +115,8 @@ namespace Tests
             var banco = new Banco();
             var conta = new ContaCorrente(12345, 500, 1000);
             var conta2 = new ContaCorrente(12345, 700, 1000);
-            
-            banco.TransferirContas(conta, conta2, 1600);
+
+            Assert.Throws<Banco.LimiteAtingidoException>(() => banco.TransferirContas(conta, conta2, 1600));
             
             Assert.AreEqual(conta.Saldo, 500);
             Assert.AreEqual(conta2.Saldo, 700);
